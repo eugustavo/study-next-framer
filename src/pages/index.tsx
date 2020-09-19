@@ -1,8 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Head from 'next/head'
 import { FiPlus } from 'react-icons/fi'
 
 import { fadeInUp, stagger } from './animations'
+import { items } from '../data'
+import Modal from '../components/Modal'
+
+import { useMotionValue, useTransform } from 'framer-motion'
 
 import {
   Container,
@@ -10,27 +14,26 @@ import {
   AddButton,
   Tasks,
   Task,
+  TaskInformation,
   TaskTitle,
   TaskDescription
 } from './styles/Home'
-import { useAnimation } from 'framer-motion'
-
-const items = [
-  {
-    id: 1,
-    title: 'Tasks: Cafe da manhã',
-    description: 'Fazer o cafe da manhã'
-  },
-  { id: 2, title: 'Tasks: Almoço', description: 'Fazer o almoço' },
-  { id: 3, title: 'Tasks: Lanche', description: 'Fazer o lanche' },
-  { id: 4, title: 'Tasks: Janta', description: 'Fazer a janta' }
-]
 
 const Home: React.FC = () => {
-  const controls = useAnimation()
+  const [toggleModal, setToggleModal] = useState(false)
+  const x = useMotionValue(0)
+  const background = useTransform(
+    x,
+    [-100, 0, 100],
+    ['rgb(255, 0, 0)', 'rgb(32, 32, 36)', 'rgb(3, 179, 0)']
+  )
+
+  const Toggle = () => {
+    setToggleModal(!toggleModal)
+  }
 
   return (
-    <div>
+    <>
       <Head>
         <title>Tasks | by GustavoSouza</title>
         <link rel="icon" href="/favicon.ico" />
@@ -40,7 +43,11 @@ const Home: React.FC = () => {
         <Header variants={fadeInUp}>
           <h1>Tasks</h1>
 
-          <AddButton whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <AddButton
+            whileHover={{ scale: 1.05, rotate: 180, borderRadius: '50%' }}
+            whileTap={{ scale: 0.95 }}
+            onClick={Toggle}
+          >
             <FiPlus size={18} />
           </AddButton>
         </Header>
@@ -49,19 +56,26 @@ const Home: React.FC = () => {
           <Tasks variants={stagger}>
             {items.map(item => (
               <Task
-                whileHover={{ scale: 1.05 }}
+                key={item.id}
+                whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.95 }}
                 variants={fadeInUp}
-                key={item.id}
               >
-                <TaskTitle>{item.title}</TaskTitle>
-                <TaskDescription>{item.description}</TaskDescription>
+                <TaskInformation
+                  style={{ x, background }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                >
+                  <TaskTitle>{item.title}</TaskTitle>
+                  <TaskDescription>{item.description}</TaskDescription>
+                </TaskInformation>
               </Task>
             ))}
           </Tasks>
         </main>
+        {toggleModal && <Modal toggle={Toggle} />}
       </Container>
-    </div>
+    </>
   )
 }
 
